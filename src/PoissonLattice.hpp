@@ -12,7 +12,7 @@
  * with a selection of algorithms.
  *
  * 2D lattice consisting of an array of floating points which represent the values of the potential
- * at some time t. The lattice can be evolved through computer time with a selection of algorithms to 
+ * at some time t. The lattice can be evolved through computer time with a selection of algorithms to
  * converge on the correct function.
  */
 class PoissonLattice
@@ -43,7 +43,7 @@ public:
 	/**
 	 *\brief Constructs a PoissonLattice of the specified size, permittivity and step size.
 	 *
-	 * The actual potential will consist of a cube where each dimension is one larger than specified, and 
+	 * The actual potential will consist of a cube where each dimension is one larger than specified, and
 	 * we will introduce a halo of sites where \phi = 0 to impose the boundary conditions.
 	 *
 	 *\param xRange range of x values in lattice.
@@ -185,9 +185,28 @@ public:
 	 *
 	 *\param out output stream reference to stream to.
 	 *\param lattice Poisson lattice to print from.
-	 *\return ostream reference so output can be chained. 
+	 *\return ostream reference so output can be chained.
 	 */
 	friend std::ostream& operator<<(std::ostream &out, const PoissonLattice &lattice);
+
+	/**
+	 *\brief sets point charge distribution.
+	 */
+	 void setPointChargeDist();
+
+	/**
+	 *\brief sets wire distribution.
+	 */
+	 void setWireDist();
+
+	/**
+	 *\brief set wire boundary conditions.
+	 */
+	 void setWireBC();
+
+
+
+
 
 
 

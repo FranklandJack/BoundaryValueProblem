@@ -6,20 +6,21 @@ PoissonLattice::PoissonLattice(int xRange, int yRange, int zRange, double permat
 																								   m_permativity(permativity),
 																								   m_dx(dx),
 																								   m_chargeDensity(xRange * yRange * zRange, 0.0),
-																								   m_potential((xRange+1)*(yRange+1)*(zRange+1), 0.0)
+																								   m_potential(xRange*yRange*zRange, 0.0)
 {
-	
+
 }
 
 void PoissonLattice::initialise(double initialValue, double noise, std::default_random_engine &generator)
 {
 	// Create the uniform distribution for generating the random numbers.
 	std::uniform_real_distribution<double> noiseDistribution(-noise, noise);
-	for(int k = 0; k < m_zRange; ++k)
+	// Only update from 1 to range-1 since boundaries should be fixed by initial conditions.
+	for(int k = 1; k < m_zRange-1; ++k)
 	{
-		for(int j = 0; j < m_yRange; ++j)
+		for(int j = 1; j < m_yRange-1; ++j)
 		{
-			for(int i = 0; i < m_xRange; ++i )
+			for(int i = 1; i < m_xRange-1; ++i )
 			{
 				(*this)(i,j,k) = initialValue + noiseDistribution(generator);
 			}
@@ -30,25 +31,12 @@ void PoissonLattice::initialise(double initialValue, double noise, std::default_
 
 double& PoissonLattice::operator()(int i, int j, int k)
 {
-	// Increment each index so that we take into account the halo of boundary conditions.
-	i+=1;
-	j+=1;
-	k+=1;
-
 	return m_potential[i + j*m_xRange + k*m_xRange*m_yRange];
-
 }
 
 const double& PoissonLattice::operator()(int i, int j, int k) const
 {
-	// Increment each index so that we take into account the halo of boundary conditions.
-	i+=1;
-	j+=1;
-	k+=1;
-
 	return m_potential[i + j*m_xRange + k*m_xRange*m_yRange];
-
-
 }
 
 double PoissonLattice::getChargeDensity(int i, int j, int k) const
@@ -64,7 +52,7 @@ void PoissonLattice::setChargeDensity(int i, int j, int k, double charge)
 
 double PoissonLattice::nextValueJacobi(int i, int j, int k) const
 {
-	return (((*this)(i+1,j,k) + (*this)(i-1,j,k) 
+	return (((*this)(i+1,j,k) + (*this)(i-1,j,k)
 		         + (*this)(i,j+1,k) + (*this)(i,j-1,k)
 		         + (*this)(i,j,k+1) + (*this)(i,j,k-1) + (pow(m_dx,2)/m_permativity) * getChargeDensity(i,j,k))/6.0);
 
@@ -75,11 +63,12 @@ double jacobiUpdate(PoissonLattice &currentLattice, PoissonLattice &updatedLatti
 {
 	double convergenceMeasure = 0;
 
-	for(int i = 0; i < currentLattice.m_xRange; ++i)
+	// Only need to check from 1 to range-1 since bounaries are fixed.
+	for(int i = 1; i < currentLattice.m_xRange-1; ++i)
 	{
-		for(int j = 0; j < currentLattice.m_yRange; ++j)
+		for(int j = 1; j < currentLattice.m_yRange-1; ++j)
 		{
-			for(int k = 0; k < currentLattice.m_zRange; ++k)
+			for(int k = 1; k < currentLattice.m_zRange-1; ++k)
 			{
 				updatedLattice(i,j,k) = currentLattice.nextValueJacobi(i,j,k);
 
@@ -100,11 +89,12 @@ double gaussSeidelUpdate(PoissonLattice &lattice)
 	double updatedValue = 0;
 	double currentValue = 0;
 
-	for(int i = 0; i < lattice.m_xRange; ++i)
+	// Only update from 1 to range-1 since boundaries should be fixed by initial conditions.
+	for(int i = 1; i < lattice.m_xRange-1; ++i)
 	{
-		for(int j = 0; j < lattice.m_yRange; ++j)
+		for(int j = 1; j < lattice.m_yRange-1; ++j)
 		{
-			for(int k = 0; k < lattice.m_zRange; ++k)
+			for(int k = 1; k < lattice.m_zRange-1; ++k)
 			{
 
 				updatedValue = lattice.nextValueJacobi(i,j,k);
@@ -137,11 +127,12 @@ double sorUpdate(double sorParameter, PoissonLattice &lattice)
 	// Local variable to hold the final update value under the SOR update.
 	double updatedSORValue = 0;
 
-	for(int i = 0; i < lattice.m_xRange; ++i)
+	// Only update from 1 to range-1 since boundaries should be fixed by initial conditions.
+	for(int i = 1; i < lattice.m_xRange-1; ++i)
 	{
-		for(int j = 0; j < lattice.m_yRange; ++j)
+		for(int j = 1; j < lattice.m_yRange-1; ++j)
 		{
-			for(int k = 0; k < lattice.m_zRange; ++k)
+			for(int k = 1; k < lattice.m_zRange-1; ++k)
 			{
 				currentValue = lattice(i,j,k);
 
@@ -165,11 +156,12 @@ double sorUpdate(double sorParameter, PoissonLattice &lattice)
 double latticeDifference(PoissonLattice &lattice1, PoissonLattice &lattice2)
 {
 	double deltaPhi = 0;
-	for(int k = 0; k < lattice1.m_zRange; ++k)
+	// Only update from 1 to range-1 since boundaries should be fixed by initial conditions.
+	for(int k = 1; k < lattice1.m_zRange-1; ++k)
 	{
-		for(int j = 0; j < lattice1.m_yRange; ++j)
+		for(int j = 1; j < lattice1.m_yRange-1; ++j)
 		{
-			for(int i = 0; i < lattice1.m_xRange; ++i )
+			for(int i = 1; i < lattice1.m_xRange-1; ++i )
 			{
 				deltaPhi += abs(lattice1(i,j,k) - lattice2(i,j,k));
 			}
@@ -227,7 +219,7 @@ void PoissonLattice::printElectricField(std::ostream& out) const
 			for(int i = 0; i < m_xRange; ++i )
 			{
 				electricFieldTemp = electricField(i, j, k);
-				out << i << ' ' << j << ' ' << k << ' ' << 
+				out << i << ' ' << j << ' ' << k << ' ' <<
 				electricFieldTemp[0] << ' ' << electricFieldTemp[1] << ' ' << electricFieldTemp[2] << '\n';
 			}
 
@@ -259,14 +251,24 @@ std::ostream& operator<<(std::ostream &out, const PoissonLattice &lattice)
 				double xDistance = xCentre - i;
 				double yDistance = yCentre - j;
 				double zDistance = zCentre - k;
+				double radialDistance = sqrt(xDistance*xDistance+yDistance*yDistance+zDistance*zDistance);
 
 
-				electricFieldTemp = lattice.electricField(i, j, k);
-				magneticFieldTemp = lattice.magneticField(i,j,k);
 
-				out << i << ' ' << j << ' ' << k << ' ' << 
-				sqrt(xDistance*xDistance+yDistance*yDistance+zDistance*zDistance) << ' ' << lattice(i,j,k) << 
-				' ' << electricFieldTemp[0] << ' ' << electricFieldTemp[1] << ' ' << electricFieldTemp[2] << 
+				if(i==0 || j==0 || k==0 || i==lattice.m_xRange-1 || j==lattice.m_yRange-1 || k==lattice.m_zRange-1)
+				{
+					electricFieldTemp = std::array<double,3>{0,0,0};
+					magneticFieldTemp = std::array<double,3>{0,0,0};
+				}
+				else
+				{
+					electricFieldTemp = lattice.electricField(i, j, k);
+					magneticFieldTemp = lattice.magneticField(i,j,k);
+				}
+
+				out << i << ' ' << j << ' ' << k << ' ' <<
+				radialDistance << ' ' << lattice(i,j,k) <<
+				' ' << electricFieldTemp[0] << ' ' << electricFieldTemp[1] << ' ' << electricFieldTemp[2] <<
 				' ' << magneticFieldTemp[0] << ' ' << magneticFieldTemp[1] << ' ' << magneticFieldTemp[2] << '\n';
 			}
 
@@ -279,3 +281,40 @@ std::ostream& operator<<(std::ostream &out, const PoissonLattice &lattice)
 	return out;
 
 }
+
+
+ void PoissonLattice::setPointChargeDist()
+ {
+	     // Utilise integer division to find the centre of the box.
+	     int xCentre = m_xRange/2;
+	     int yCentre = m_yRange/2;
+	     int zCentre = m_zRange/2;
+
+			 // Point charge magnitude.
+	     double deltaCharge = 1;
+
+			 // Set the charge.
+			 setChargeDensity(xCentre, yCentre, zCentre, deltaCharge);
+ }
+
+
+ void PoissonLattice::setWireDist()
+ {
+	 // Utilise integer division to find the centre of the box.
+	 int xCentre = m_xRange/2;
+	 int yCentre = m_yRange/2;
+	 int zCentre = m_zRange/2;
+
+	 // Set current magnitude.
+	 double deltaCharge = 1;
+	 for(int k = 0; k < m_zRange; ++k)
+	 {
+		 setChargeDensity(xCentre, yCentre, k, deltaCharge);
+	 }
+ }
+
+
+ void PoissonLattice::setWireBC()
+ {
+
+ }

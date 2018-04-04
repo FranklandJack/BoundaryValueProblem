@@ -5,7 +5,7 @@
 #include <chrono> // For timing.
 #include <ctime>  // For timing.
 #include <random> // For generating random numbers.
-#include <cmath> // For any maths functions.  
+#include <cmath> // For any maths functions.
 #include <iomanip> // For manipulating output.
 #include <string> // For naming output directory.
 #include <fstream> // For file output.
@@ -21,13 +21,13 @@ int main(int argc, char const *argv[])
 /*************************************************************************************************************************
 ************************************************* Preparations **********************************************************
 *************************************************************************************************************************/
-    // Start the clock so execution time can be calculated. 
+    // Start the clock so execution time can be calculated.
     Timer timer;
 
     // Seed the pseudo random number generator using the system clock.
     unsigned int seed = static_cast<unsigned int>(std::chrono::system_clock::now().time_since_epoch().count());
 
-    // Create a generator that can be fed to any distribution to produce pseudo random numbers according to that distribution. 
+    // Create a generator that can be fed to any distribution to produce pseudo random numbers according to that distribution.
     std::default_random_engine generator(seed);
 
 /*************************************************************************************************************************
@@ -90,7 +90,7 @@ int main(int argc, char const *argv[])
         ("SOR","Use successive over relaxation method with Gauss-Seidel algorithm, will take overall precedence")
         ("Wire","Solve the magnetostatic equation instead.")
         ("help,h","Display help message.");
-  
+
 
     boost::program_options::variables_map vm;
     boost::program_options::store(boost::program_options::parse_command_line(argc,argv,desc), vm);
@@ -135,7 +135,7 @@ int main(int argc, char const *argv[])
         permittivity,
         initialValue,
         noise,
-        precision, 
+        precision,
         xRange,
         yRange,
         zRange,
@@ -154,7 +154,7 @@ int main(int argc, char const *argv[])
     // Create output file for the input parameters.
     std::fstream inputParameterOutput(outputName+"/input.txt", std::ios::out);
 
-    // Create single output file for lattice so we can print the potential and anything else at the same time 
+    // Create single output file for lattice so we can print the potential and anything else at the same time
     // which is quicker than iterating through 3D lattice multiple times.
     std::fstream poissonOutput(outputName+"/poissonOutput.dat", std::ios::out);
 
@@ -164,14 +164,14 @@ int main(int argc, char const *argv[])
     // Print input parameters to command line.
     std::cout << inputParameters << '\n';
 
-    // Print input parameters to file. 
+    // Print input parameters to file.
     inputParameterOutput << inputParameters << '\n';
 
 /*************************************************************************************************************************
 ************************************************* The Simulation ********************************************************
 *************************************************************************************************************************/
 
-// There will be three possible algorithm choices and the structure of the simulation will depend on which is used so here 
+// There will be three possible algorithm choices and the structure of the simulation will depend on which is used so here
 // the program takes three possible branches.
 
 // Create a lattice to hold the current state of the potential.
@@ -191,23 +191,22 @@ int main(int argc, char const *argv[])
 // If the user asks for the wire then do that.
     if(problem==PoissonInputParameters::Magneto)
     {
-        for(int k = 0; k < zRange; ++k)
-        {
-            currentLattice.setChargeDensity(xCentre, yCentre, k, deltaCharge);
-        }
+        currentLattice.setWireDist();
+        // Set the boundary condition as well that the derivative vanishes.
+        currentLattice.setWireBC();
     }
 
 // Otherwise do the point charge.
     else
     {
-        // Place a point charge at the centre of the box by approximating a delta function as a large number.
-        currentLattice.setChargeDensity(xCentre, yCentre, zCentre, deltaCharge);
+        currentLattice.setPointChargeDist();
+        // By default boundary will be zero so no need to expicily set boundary conditions.
     }
 
 // Create a lattice to hold the updated state of the lattice.
     PoissonLattice  updatedLattice = currentLattice;
 
-// Create a counter to calculate the number of iterations required for convergence. 
+// Create a counter to calculate the number of iterations required for convergence.
     int counter = 0;
 
 // Create a variable to hold how ``converged'' the lattice is relative to the user defined precision.
@@ -224,7 +223,7 @@ switch(solutionMethod)
                 ++counter;
                 // Update the lattice based on its current state.
                 convergence = jacobiUpdate(currentLattice, updatedLattice);
-               
+
 
                 // Swap the lattices so the current lattice becomes the updated one and the updated one the one will update into.
                 std::swap(currentLattice, updatedLattice);
@@ -233,7 +232,7 @@ switch(solutionMethod)
                 {
                     std::cout << counter << ' ' << convergence << '\n';
                 }
-                
+
                 // Check to see if the lattice has converged and if it has stop updating the lattice.
                 if(convergence < precision)
                 {
@@ -279,7 +278,7 @@ switch(solutionMethod)
             {
                 while(true)
                 {
-                    // Count the number of times we have to do an update before convergence. 
+                    // Count the number of times we have to do an update before convergence.
                     ++counter;
 
                     // Update the lattice based on the GaussSeidal algorithm
@@ -304,13 +303,13 @@ switch(solutionMethod)
     // Default statement to stop compiler throwing warning-doesn't actually do anything.
     default:
         break;
-        
+
 }
 
 /*************************************************************************************************************************
 ***********************************************  Output/Clean Up ********************************************************
 *************************************************************************************************************************/
-    
+
     // Save the potential and field to a file.
     poissonOutput << currentLattice;
 
@@ -321,6 +320,7 @@ switch(solutionMethod)
 
     outputResults << std::setw(30) << std::setfill(' ') << std::left << "Number-of-iterations-until-convergence: " << std::right << counter << std::endl;
     outputResults << std::setw(30) << std::setfill(' ') << std::left << "Time-take-to-execute(s): " << std::right << runTime << std::endl << std::endl;
+
 
     return 0;
 }
