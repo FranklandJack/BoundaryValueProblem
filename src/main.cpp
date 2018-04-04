@@ -224,7 +224,6 @@ switch(solutionMethod)
                 // Update the lattice based on its current state.
                 convergence = jacobiUpdate(currentLattice, updatedLattice);
 
-                std::cout << "check" << '\n';
                 // Swap the lattices so the current lattice becomes the updated one and the updated one the one will update into.
                 std::swap(currentLattice, updatedLattice);
 
@@ -236,6 +235,7 @@ switch(solutionMethod)
                 // Check to see if the lattice has converged and if it has stop updating the lattice.
                 if(convergence < precision)
                 {
+                  std::cout << convergence << '\n';
                     break;
                 }
 
