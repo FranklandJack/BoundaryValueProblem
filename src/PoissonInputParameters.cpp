@@ -3,7 +3,7 @@
 std::ostream& operator<<(std::ostream& out, const PoissonInputParameters& params)
 {
 	int outputColumnWidth = 30;
-    out << "Input-Parameters..." << '\n'; 
+    out << "Input-Parameters..." << '\n';
     switch(params.solutionMethod)
     {
         case PoissonInputParameters::Jacobi:
@@ -17,20 +17,6 @@ std::ostream& operator<<(std::ostream& out, const PoissonInputParameters& params
         case PoissonInputParameters::SOR:
             out << std::setw(outputColumnWidth) << std::setfill(' ') << std::left << "Solution-method: " << std::right << "SOR" <<'\n';
             out << std::setw(outputColumnWidth) << std::setfill(' ') << std::left << "SOR-parameter: " << std::right << params.sorParameter <<'\n';
-            break;
-
-        default:
-            break;
-
-    }
-    switch(params.problem)
-    {
-        case PoissonInputParameters::Electro:
-            out << std::setw(outputColumnWidth) << std::setfill(' ') << std::left << "Problem: " << std::right << "Point-charge" <<'\n';
-            break;
-
-        case PoissonInputParameters::Magneto:
-            out << std::setw(outputColumnWidth) << std::setfill(' ') << std::left << "Problem: " << std::right << "Current-wire" <<'\n';
             break;
 
         default:

@@ -3,14 +3,14 @@
 #include <iostream>
 #include <iomanip>
 /**
- *\file 
+ *\file
  *\class PoissonInputParameters
  *\brief Class for easily handling input parameters of Poisson differential equation solver.
  *
  * This class essentially just holds some values and has an operator to easily output
  * them to a stream.
  */
-class PoissonInputParameters 
+class PoissonInputParameters
 {
 
 public:
@@ -25,20 +25,9 @@ public:
         SOR
     };
 
-    /**
-     *\enum to hold the problem we are going to solve
-     */
-    enum ProblemSolved
-    {
-    	Electro,
-    	Magneto
-    };
 
     /// Solution method.
     SolutionMethod solutionMethod;
-
-    /// Problem to be solved.
-    ProblemSolved problem;
 
 	/// Spatial discretisation step.
     double spaceStep;
@@ -70,7 +59,7 @@ public:
     /// Successive over relaxation parameter.
     double sorParameter;
 
-    /** 
+    /**
 	 *\brief operator<< overload for outputting the results.
 	 *\param out std::ostream reference that is the stream being outputted to.
 	 *\param params constant PoissonInputParameters instance to be output.

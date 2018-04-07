@@ -136,22 +136,6 @@ public:
 	 */
 	double nextValueJacobi(int i, int j, int k) const;
 
-	/**
-	 *\brief Calculates how close two Poisson lattices are based on a measure.
-	 *
-	 * The measure is calculated by sum_{i,j,k} |\phi_1(i,j,k)-\phi_2(i,j,k)|.
-	 *
-	 *\param lattice1 first lattice.
-	 *\param lattice2 second lattice.
-	 *\return floating point value representing how close lattices are.
-	 */
-	friend double latticeDifference(PoissonLattice &lattice1, PoissonLattice &lattice2);
-
-	/**
-	 *\brief Prints the potential to an output stream in the form x y z \phi
-	 *\param out output stream to print to.
-	 */
-	void printPotential(std::ostream &out);
 
 	/**
 	 *\brief Calculates the electric field based on the electrostatic equation E = -\grad(\phi).
@@ -162,20 +146,6 @@ public:
 	 */
 	std::array<double,3> electricField(int i, int j, int k) const;
 
-	/**
-	 *\brief Calculates the magnetic field based on the magnetostatic equation B = \grad x A.
-	 *\param i x coordinate of point.
-	 *\param j y coordinate of point.
-	 *\param k z coordinate of point.
-	 *\return array of three doubles representing the x,y and z components of B.
-	 */
-	std::array<double,3> magneticField(int i, int j, int k) const;
-
-	/**
-	 *\brief Prints the electric field calculated across the entire lattice to an output stream in the form x y z E
-	 *\param out output stream reference to be printed to.
-	 */
-	void printElectricField(std::ostream& out) const;
 
 	/**
 	 *\brief operator overload to print various pieces of data into a single file for efficiency
@@ -193,23 +163,6 @@ public:
 	 *\brief sets point charge distribution.
 	 */
 	 void setPointChargeDist();
-
-	/**
-	 *\brief sets wire distribution.
-	 */
-	 void setWireDist();
-
-	/**
-	 *\brief set wire boundary conditions.
-	 */
-	 void setWireBC();
-
-
-
-
-
-
-
 
 
 };

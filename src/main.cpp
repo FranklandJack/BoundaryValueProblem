@@ -35,9 +35,6 @@ int main(int argc, char const *argv[])
 *************************************************************************************************************************/
     // Input parameters for the simulation.
 
-    // Problem to be solved.
-    PoissonInputParameters::ProblemSolved problem;
-
     // Method for relaxation algorithm.
     PoissonInputParameters::SolutionMethod solutionMethod;
 
@@ -78,7 +75,7 @@ int main(int argc, char const *argv[])
         ("spatial-discretisation,x", boost::program_options::value<double>(&spaceStep)->default_value(1), "Spatial discretisation step size.")
         ("permittivity,p", boost::program_options::value<double>(&permittivity)->default_value(1), "M parameter from Cahn-Hilliard equation.")
         ("initial-value,v", boost::program_options::value<double>(&initialValue)->default_value(0), "Initial value of order parameter.")
-        ("noise,n",boost::program_options::value<double>(&noise)->default_value(0.1), "Maximum magnitude of initial noise.")
+        ("noise,n",boost::program_options::value<double>(&noise)->default_value(0.0), "Maximum magnitude of initial noise.")
         ("precision,d", boost::program_options::value<double>(&precision)->default_value(0.001),"Precision of convergence.")
         ("x-range,r", boost::program_options::value<int>(&xRange)->default_value(100),"Total number of x points in domain of simulation domain.")
         ("y-range,c", boost::program_options::value<int>(&yRange)->default_value(100),"Total number of y points in domain of simulation domain.")
@@ -88,7 +85,6 @@ int main(int argc, char const *argv[])
         ("Jacobi","Use Jacobi relaxation method")
         ("Gauss-Seidel","Use Gauss-Seidel relaxation method (will take precedence over Gauss-Seidel")
         ("SOR","Use successive over relaxation method with Gauss-Seidel algorithm, will take overall precedence")
-        ("Wire","Solve the magnetostatic equation instead.")
         ("help,h","Display help message.");
 
 
@@ -117,20 +113,10 @@ int main(int argc, char const *argv[])
         solutionMethod = PoissonInputParameters::Jacobi;
     }
 
-    if(vm.count("Wire"))
-    {
-        problem = PoissonInputParameters::Magneto;
-    }
-    else
-    {
-        problem = PoissonInputParameters::Electro;
-    }
-
     // Construct an input parameter object, this just makes printing a lot cleaner.
     PoissonInputParameters inputParameters
     {
         solutionMethod,
-        problem,
         spaceStep,
         permittivity,
         initialValue,
@@ -180,28 +166,11 @@ int main(int argc, char const *argv[])
 // Initialise the lattice with some value and random noise.
     currentLattice.initialise(initialValue, noise, generator);
 
-// Initialise the charge density or current.
-    // Utilise integer division to find the centre of the box.
-    int xCentre = xRange/2;
-    int yCentre = yRange/2;
-    int zCentre = zRange/2;
+// Initialise the charge density.
+// By default boundary will be zero so no need to expicily set boundary conditions.
+    currentLattice.setPointChargeDist();
 
-    double deltaCharge = 1;
 
-// If the user asks for the wire then do that.
-    if(problem==PoissonInputParameters::Magneto)
-    {
-        currentLattice.setWireDist();
-        // Set the boundary condition as well that the derivative vanishes.
-        currentLattice.setWireBC();
-    }
-
-// Otherwise do the point charge.
-    else
-    {
-        currentLattice.setPointChargeDist();
-        // By default boundary will be zero so no need to expicily set boundary conditions.
-    }
 
 // Create a lattice to hold the updated state of the lattice.
     PoissonLattice  updatedLattice = currentLattice;
@@ -235,7 +204,6 @@ switch(solutionMethod)
                 // Check to see if the lattice has converged and if it has stop updating the lattice.
                 if(convergence < precision)
                 {
-                  std::cout << convergence << '\n';
                     break;
                 }
 

@@ -153,42 +153,8 @@ double sorUpdate(double sorParameter, PoissonLattice &lattice)
 }
 
 
-double latticeDifference(PoissonLattice &lattice1, PoissonLattice &lattice2)
-{
-	double deltaPhi = 0;
-	// Only update from 1 to range-1 since boundaries should be fixed by initial conditions.
-	for(int k = 1; k < lattice1.m_zRange-1; ++k)
-	{
-		for(int j = 1; j < lattice1.m_yRange-1; ++j)
-		{
-			for(int i = 1; i < lattice1.m_xRange-1; ++i )
-			{
-				deltaPhi += abs(lattice1(i,j,k) - lattice2(i,j,k));
-			}
-		}
-	}
 
-	return deltaPhi;
-}
 
-void PoissonLattice::printPotential(std::ostream &out)
-{
-	for(int k = 0; k < m_zRange; ++k)
-	{
-		for(int j = 0; j < m_yRange; ++j)
-		{
-			for(int i = 0; i < m_xRange; ++i )
-			{
-				out << i << ' ' << j << ' ' << k << ' ' << (*this)(i,j,k) <<'\n';
-			}
-
-			out << '\n';
-		}
-
-		out << '\n';
-	}
-
-}
 
 std::array<double,3> PoissonLattice::electricField(int i, int j, int k) const
 {
@@ -199,37 +165,6 @@ std::array<double,3> PoissonLattice::electricField(int i, int j, int k) const
 	return electricField;
 }
 
-std::array<double,3> PoissonLattice::magneticField(int i, int j, int k) const
-{
-	std::array<double,3> magneticField = {((*this)(i,j+1,k)-(*this)(i,j-1,k))/(2*m_dx),
-							-((*this)(i+1,j,k)-(*this)(i-1,j,k))/(2*m_dx),
-							0};
-
-	return magneticField;
-
-}
-
-void PoissonLattice::printElectricField(std::ostream& out) const
-{
-	std::array<double,3> electricFieldTemp;
-	for(int k = 0; k < m_zRange; ++k)
-	{
-		for(int j = 0; j < m_yRange; ++j)
-		{
-			for(int i = 0; i < m_xRange; ++i )
-			{
-				electricFieldTemp = electricField(i, j, k);
-				out << i << ' ' << j << ' ' << k << ' ' <<
-				electricFieldTemp[0] << ' ' << electricFieldTemp[1] << ' ' << electricFieldTemp[2] << '\n';
-			}
-
-			out << '\n';
-		}
-
-		out << '\n';
-	}
-
-}
 
 std::ostream& operator<<(std::ostream &out, const PoissonLattice &lattice)
 {
@@ -253,23 +188,25 @@ std::ostream& operator<<(std::ostream &out, const PoissonLattice &lattice)
 				double zDistance = zCentre - k;
 				double radialDistance = sqrt(xDistance*xDistance+yDistance*yDistance+zDistance*zDistance);
 
+				double fieldStrength;
+
 
 
 				if(i==0 || j==0 || k==0 || i==lattice.m_xRange-1 || j==lattice.m_yRange-1 || k==lattice.m_zRange-1)
 				{
 					electricFieldTemp = std::array<double,3>{0,0,0};
-					magneticFieldTemp = std::array<double,3>{0,0,0};
 				}
 				else
 				{
 					electricFieldTemp = lattice.electricField(i, j, k);
-					magneticFieldTemp = lattice.magneticField(i,j,k);
 				}
+
+				fieldStrength = sqrt(electricFieldTemp[0]*electricFieldTemp[0] + electricFieldTemp[1]*electricFieldTemp[1] + electricFieldTemp[2]*electricFieldTemp[2]);
 
 				out << i << ' ' << j << ' ' << k << ' ' <<
 				radialDistance << ' ' << lattice(i,j,k) <<
 				' ' << electricFieldTemp[0] << ' ' << electricFieldTemp[1] << ' ' << electricFieldTemp[2] <<
-				' ' << magneticFieldTemp[0] << ' ' << magneticFieldTemp[1] << ' ' << magneticFieldTemp[2] << '\n';
+				' ' << fieldStrength << ' ' << '\n';
 			}
 
 			out << '\n';
@@ -295,26 +232,4 @@ std::ostream& operator<<(std::ostream &out, const PoissonLattice &lattice)
 
 			 // Set the charge.
 			 setChargeDensity(xCentre, yCentre, zCentre, deltaCharge);
- }
-
-
- void PoissonLattice::setWireDist()
- {
-	 // Utilise integer division to find the centre of the box.
-	 int xCentre = m_xRange/2;
-	 int yCentre = m_yRange/2;
-	 int zCentre = m_zRange/2;
-
-	 // Set current magnitude.
-	 double deltaCharge = 1;
-	 for(int k = 0; k < m_zRange; ++k)
-	 {
-		 setChargeDensity(xCentre, yCentre, k, deltaCharge);
-	 }
- }
-
-
- void PoissonLattice::setWireBC()
- {
-
  }
