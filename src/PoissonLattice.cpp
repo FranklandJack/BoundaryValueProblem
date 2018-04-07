@@ -54,7 +54,7 @@ double PoissonLattice::nextValueJacobi(int i, int j, int k) const
 {
 	return (((*this)(i+1,j,k) + (*this)(i-1,j,k)
 		         + (*this)(i,j+1,k) + (*this)(i,j-1,k)
-		         + (*this)(i,j,k+1) + (*this)(i,j,k-1) + (pow(m_dx,2)/m_permativity) * getChargeDensity(i,j,k))/6.0);
+		         + (*this)(i,j,k+1) + (*this)(i,j,k-1) + (std::pow(m_dx,2)/m_permativity) * getChargeDensity(i,j,k))/6.0);
 
 }
 
@@ -72,7 +72,7 @@ double jacobiUpdate(PoissonLattice &currentLattice, PoissonLattice &updatedLatti
 			{
 				updatedLattice(i,j,k) = currentLattice.nextValueJacobi(i,j,k);
 
-				convergenceMeasure += abs(updatedLattice(i,j,k)-currentLattice(i,j,k));
+				convergenceMeasure += std::abs(updatedLattice(i,j,k)-currentLattice(i,j,k));
 
 			}
 		}
@@ -101,7 +101,7 @@ double gaussSeidelUpdate(PoissonLattice &lattice)
 
 				currentValue = lattice(i,j,k);
 
-				convergenceMeasure += abs(updatedValue-currentValue);
+				convergenceMeasure += std::abs(updatedValue-currentValue);
 
 				lattice(i,j,k) = updatedValue;
 
@@ -142,7 +142,7 @@ double sorUpdate(double sorParameter, PoissonLattice &lattice)
 
 				lattice(i,j,k) = updatedSORValue;
 
-				convergenceMeasure += abs(updatedSORValue-currentValue);
+				convergenceMeasure += std::abs(updatedSORValue-currentValue);
 
 			}
 		}
@@ -186,7 +186,7 @@ std::ostream& operator<<(std::ostream &out, const PoissonLattice &lattice)
 				double xDistance = xCentre - i;
 				double yDistance = yCentre - j;
 				double zDistance = zCentre - k;
-				double radialDistance = sqrt(xDistance*xDistance+yDistance*yDistance+zDistance*zDistance);
+				double radialDistance = std::sqrt(xDistance*xDistance+yDistance*yDistance+zDistance*zDistance);
 
 				double fieldStrength;
 
@@ -201,7 +201,7 @@ std::ostream& operator<<(std::ostream &out, const PoissonLattice &lattice)
 					electricFieldTemp = lattice.electricField(i, j, k);
 				}
 
-				fieldStrength = sqrt(electricFieldTemp[0]*electricFieldTemp[0] + electricFieldTemp[1]*electricFieldTemp[1] + electricFieldTemp[2]*electricFieldTemp[2]);
+				fieldStrength = std::sqrt(electricFieldTemp[0]*electricFieldTemp[0] + electricFieldTemp[1]*electricFieldTemp[1] + electricFieldTemp[2]*electricFieldTemp[2]);
 
 				out << i << ' ' << j << ' ' << k << ' ' <<
 				radialDistance << ' ' << lattice(i,j,k) <<
